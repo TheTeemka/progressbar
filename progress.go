@@ -39,7 +39,9 @@ func (p *ProgressBar) Write(data []byte) (int, error) {
 	dif := time.Since(p.lastTime).Seconds()
 	if dif >= 0.5 {
 		p.downloadSpeed = float64(p.inBuffer) / dif
-		p.timeLeft = float64(p.TotalBytes-p.DownBytes) / p.downloadSpeed
+		if p.TotalBytes != -1 {
+			p.timeLeft = float64(p.TotalBytes-p.DownBytes) / p.downloadSpeed
+		}
 
 		p.inBuffer = 0
 		p.lastTime = time.Now()

@@ -18,7 +18,7 @@ func TestBar(t *testing.T) {
 	p.Print()
 }
 
-func TestMal(t *testing.T) {
+func TestWithTotal(t *testing.T) {
 	url := "http://212.183.159.230/200MB.zip"
 
 	resp, err := http.DefaultClient.Get(url)
@@ -28,6 +28,23 @@ func TestMal(t *testing.T) {
 	defer resp.Body.Close()
 
 	bar := progressbar.New(resp.ContentLength)
+	os, err := os.Create("file.txt")
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(io.MultiWriter(os, bar), resp.Body)
+}
+
+func TestWithoutTotal(t *testing.T) {
+	url := "http://212.183.159.230/200MB.zip"
+
+	resp, err := http.DefaultClient.Get(url)
+	if err != nil {
+		t.Fatal()
+	}
+	defer resp.Body.Close()
+
+	bar := progressbar.New(-1)
 	os, err := os.Create("file.txt")
 	if err != nil {
 		panic(err)

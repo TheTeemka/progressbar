@@ -28,17 +28,24 @@ var blocks = []struct {
 
 func ToStringBar(p *ProgressBar) string {
 	s := clearLine
-	s += fmt.Sprintf("%-6.2f%%|", p.percent())
-	s += stringBar(p)
-	s += fmt.Sprintf("|%-10s %-10s", convertSpeed(p.downloadSpeed), convertTime(int64(p.timeLeft)))
+	if p.TotalBytes == -1 {
+		data := convertData(float64(p.DownBytes))
+		t := convertTime(int64(time.Since(p.startTime).Seconds()))
+
+		s = fmt.Sprintf("|%s has been downloaded in %s| %-10s", data, t, convertSpeed(p.downloadSpeed))
+	} else {
+		s += fmt.Sprintf("%-6.2f%%|", p.percent())
+		s += stringBar(p)
+		s += fmt.Sprintf("|%-10s %-10s", convertSpeed(p.downloadSpeed), convertTime(int64(p.timeLeft)))
+	}
 	return s
 }
 
 func ToStringResult(p *ProgressBar) string {
-	data := convertData(float64(p.TotalBytes))
+	data := convertData(float64(p.DownBytes))
 	t := convertTime(int64(time.Since(p.startTime).Seconds()))
 
-	s := fmt.Sprintf("\n%s has been downloaded in %s\n", data, t)
+	s := fmt.Sprintf("\nFinished! %s has succesfully been downloaded in %s\n", data, t)
 	return s
 }
 
