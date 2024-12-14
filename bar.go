@@ -32,7 +32,7 @@ func ToStringBar(p *ProgressBar) string {
 		data := convertData(float64(p.DownBytes))
 		t := convertTime(int64(time.Since(p.startTime).Seconds()))
 
-		s = fmt.Sprintf("|%s has been downloaded in %s| %-10s", data, t, convertSpeed(p.downloadSpeed))
+		s = fmt.Sprintf("%s has been downloaded in %s| %-10s", data, t, convertSpeed(p.downloadSpeed))
 	} else {
 		s += fmt.Sprintf("%-6.2f%%|", p.percent())
 		s += stringBar(p)
@@ -97,11 +97,11 @@ func convertSpeed(speed float64) string {
 
 func convertData(data float64) string {
 	switch {
-	case data > (1<<30)/10:
+	case data > (1<<30)/3:
 		return fmt.Sprintf("%0.2f GB", data/(1<<30))
-	case data > (1<<20)/10:
+	case data > (1<<20)/3:
 		return fmt.Sprintf("%0.2f MB", data/(1<<20))
-	case data > (1<<10)/10:
+	case data > (1<<10)/3:
 		return fmt.Sprintf("%0.2f KB", data/(1<<10))
 	default:
 		return fmt.Sprintf("%0.2f B", data)
@@ -113,12 +113,12 @@ func convertTime(t int64) string {
 
 	if t >= 3600 {
 		s.WriteString(fmt.Sprintf("%dh ", t/3600))
-		t /= 3600
+		t %= 3600
 	}
 
 	if t >= 60 {
 		s.WriteString(fmt.Sprintf("%dm ", t/60))
-		t /= 60
+		t %= 60
 	}
 
 	if t >= 0 {
