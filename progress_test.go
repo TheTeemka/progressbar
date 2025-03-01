@@ -2,52 +2,57 @@ package progressbar_test
 
 import (
 	"io"
-	"math/rand"
-	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/TheTeemka/progressbar"
+	"github.com/TheTeemka/progressbar/bar"
 )
 
-func TestBar(t *testing.T) {
-	p := progressbar.ProgressBar{
-		TotalBytes: 1 << 20,
-		DownBytes:  rand.Int63n(1 << 20),
-	}
-	p.Print()
+type Slower struct{}
+
+func (s Slower) Write(p []byte) (int, error) {
+	time.Sleep(time.Millisecond * 1)
+	return len(p), nil
 }
 
 func TestWithTotal(t *testing.T) {
-	url := "http://212.183.159.230/200MB.zip"
-
-	resp, err := http.DefaultClient.Get(url)
+	input, err := os.Open("ex.txt")
 	if err != nil {
-		t.Fatal()
+		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	st, err := input.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	bar := progressbar.New(resp.ContentLength)
+	bar, err := progressbar.New(st.Size(), bar.NewCarBar())
+	if err != nil {
+		t.Fatal(err)
+	}
 	os, err := os.Create("file.txt")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-	io.Copy(io.MultiWriter(os, bar), resp.Body)
+
+	var slower Slower
+	io.Copy(io.MultiWriter(os, bar, slower), input)
 }
 
-func TestWithoutTotal(t *testing.T) {
-	url := "http://212.183.159.230/200MB.zip"
+// func TestWithoutTotal(t *testing.T) {
+// 	input, err := os.Open("ex.txt")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	resp, err := http.DefaultClient.Get(url)
-	if err != nil {
-		t.Fatal()
-	}
-	defer resp.Body.Close()
-
-	bar := progressbar.New(-1)
-	os, err := os.Create("file.txt")
-	if err != nil {
-		panic(err)
-	}
-	io.Copy(io.MultiWriter(os, bar), resp.Body)
-}
+// 	bar, err := progressbar.New(-1, nil)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	os, err := os.Create("file.txt")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	io.Copy(io.MultiWriter(os, bar), input)
+// }
